@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Post = require("../models/post");
 const User = require("../models/user");
+
 //create a post 
 router.post("/", async (req, res) => {
 const newPost = new Post(req.body);
@@ -11,6 +12,7 @@ try{
     res.status(500).json(err);
 }
 });
+
 //update a post
 router.put("/:id" , async (req, res) =>{
     try{
@@ -97,6 +99,17 @@ router.get("/timeline/:userId", async (req, res) =>{
             })
         );
         res.json(userPosts.concat(...friendPosts));
+    }catch(err){
+        res.status(500).json(err);
+    }
+})
+
+//get all user posts
+router.get("/profile/:username", async (req, res) =>{
+    try{
+    const user = await User.findOne({username: req.params.username})
+    const posts = await Post.find({userId: user._id})
+       res.status(200).json(posts)
     }catch(err){
         res.status(500).json(err);
     }
