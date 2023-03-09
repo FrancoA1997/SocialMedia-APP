@@ -1,8 +1,25 @@
 const router = require("express").Router();
-const Message = require('../models/Message.js')
+const Message = require('../models/Message.js');
+const jwt = require('jsonwebtoken')
 
+const verify = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if(authHeader){
+        const token = authHeader.split(" ")[1];
+        jwt.verify(token, "mySecretKey", (err, payload)=> {
+            if(err){
+                return res.status(403).json("Invalid token")
+            }
+            req.payload = payload;
+            next();
+        });
+    }else{
+        res.status(401).json("You are not authenticated")
+    }
+
+}
 //Add messages
-router.post("/", async (req, res) => {
+router.post("/",verify, async (req, res) => {
     const newMessage = new Message(req.body)
     try{
 
@@ -13,7 +30,7 @@ router.post("/", async (req, res) => {
     }
 })
 //Get messages
-router.get("/:conversationId", async (req, res) => {
+router.get("/:conversationId", verify, async (req, res) => {
     try{
 
         const messages = await Message.find({

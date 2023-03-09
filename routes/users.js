@@ -1,9 +1,27 @@
 const router = require("express").Router();
 const User = require("../models/user");
 const bcrypt = require("bcrypt")
+const jwt = require('jsonwebtoken')
+
+const verify = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if(authHeader){
+        const token = authHeader.split(" ")[1];
+        jwt.verify(token, "mySecretKey", (err, payload)=> {
+            if(err){
+                return res.status(403).json("Invalid token")
+            }
+            req.payload = payload;
+            next();
+        });
+    }else{
+        res.status(401).json("You are not authenticated")
+    }
+
+}
 
 //UPDATE USER
-router.put("/:id", async (req, res) =>{
+router.put("/:id", verify, async (req, res) =>{
     if(req.body.userId == req.params.id || req.body.isAdmin){
         if(req.body.password){
             try{
@@ -29,7 +47,7 @@ router.put("/:id", async (req, res) =>{
 
 });
 //DELETE USER
-router.delete("/:id", async (req, res) =>{
+router.delete("/:id",verify, async (req, res) =>{
     if(req.body.userId == req.params.id || req.body.isAdmin){
         try{
             const user = await User.findByIdAndDelete(req.params.id);
@@ -42,7 +60,7 @@ router.delete("/:id", async (req, res) =>{
     }
 });
 //GET A USER
-router.get("/", async(req, res) =>{
+router.get("/",verify, async(req, res) =>{
     const userId = req.query.userId;
     const username = req.query.username;
     try{
@@ -57,7 +75,7 @@ router.get("/", async(req, res) =>{
 });
 
 //GET FOLLOWED USERS
-router.get("/friends/:userId", async(req, res) =>{
+router.get("/friends/:userId",verify, async(req, res) =>{
 try{
     const user = await User.findById(req.params.userId);
     const friends = await Promise.all(
@@ -78,7 +96,7 @@ try{
 
 })
 //FOLLOW A USER
-router.put("/:id/follow", async(req, res) =>{
+router.put("/:id/follow", verify, async(req, res) =>{
     if(req.body.userId !== req.params.id){
         try{
             const user = await User.findById(req.params.id);
@@ -106,7 +124,7 @@ router.put("/:id/follow", async(req, res) =>{
     }
 })
 //UNFOLLOW A USER
-router.put("/:id/unfollow", async(req, res) =>{
+router.put("/:id/unfollow", verify, async(req, res) =>{
     if(req.body.userId !== req.params.id){
         try{
             const user = await User.findById(req.params.id);
