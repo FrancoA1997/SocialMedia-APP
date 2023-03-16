@@ -72,7 +72,7 @@ router.post("/register", async (req, res) =>{
         }, 
             "mySecretKey",
         { 
-                expiresIn: "30s"
+                expiresIn: "30m"
         });
       
     }
