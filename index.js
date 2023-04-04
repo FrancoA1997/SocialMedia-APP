@@ -13,7 +13,6 @@ const path = require("path");
 const app = express();
 
 
-
 dotenv.config();
 mongoose.set("strictQuery", false);
 mongoose.connect(process.env.MONGO_URL, () =>{
